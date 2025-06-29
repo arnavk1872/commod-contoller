@@ -1,18 +1,19 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Languages } from 'lucide-react';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login, isLoading } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,8 +21,8 @@ const LoginPage = () => {
     
     if (!email || !password) {
       toast({
-        title: "Validation Error",
-        description: "Please fill in all fields",
+        title: t('auth.validationError'),
+        description: t('auth.fillAllFields'),
         variant: "destructive"
       });
       return;
@@ -31,21 +32,34 @@ const LoginPage = () => {
     
     if (!success) {
       toast({
-        title: "Login Failed",
-        description: "Invalid email or password",
+        title: t('auth.loginFailed'),
+        description: t('auth.invalidCredentials'),
         variant: "destructive"
       });
     } else {
       toast({
-        title: "Login Successful",
-        description: "Welcome to Commodities Management System"
+        title: t('auth.loginSuccess'),
+        description: t('auth.loginSuccessDesc')
       });
     }
   };
 
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'fr' : 'en');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggleLanguage}
+          className="border-2"
+          title={`Switch to ${language === 'en' ? 'Français' : 'English'}`}
+        >
+          <Languages className="h-4 w-4" />
+        </Button>
         <Button
           variant="outline"
           size="icon"
@@ -62,10 +76,10 @@ const LoginPage = () => {
             <div className="w-8 h-8 bg-white rounded-sm"></div>
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-            Commodities Management
+            {t('app.title')}
           </CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-300">
-            Sign in to access your dashboard
+            {t('app.tagline')}
           </CardDescription>
         </CardHeader>
         
@@ -74,7 +88,7 @@ const LoginPage = () => {
             <div className="space-y-2">
               <Input
                 type="email"
-                placeholder="Enter your email"
+                placeholder={t('auth.email')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-12 border-2 focus:border-blue-500"
@@ -85,7 +99,7 @@ const LoginPage = () => {
             <div className="space-y-2">
               <Input
                 type="password"
-                placeholder="Enter your password"
+                placeholder={t('auth.password')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-12 border-2 focus:border-blue-500"
@@ -98,15 +112,15 @@ const LoginPage = () => {
               className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all duration-200"
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? t('auth.signingIn') : t('auth.signIn')}
             </Button>
           </form>
           
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            <p className="mb-2">Demo Accounts:</p>
+            <p className="mb-2">{t('auth.demoAccounts')}</p>
             <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg space-y-1">
-              <p><strong>Manager:</strong> manager@company.com / manager123</p>
-              <p><strong>Store Keeper:</strong> keeper@company.com / keeper123</p>
+              <p><strong>{t('auth.manager')}:</strong> manager@company.com / manager123</p>
+              <p><strong>{t('auth.storeKeeper')}:</strong> keeper@company.com / keeper123</p>
             </div>
           </div>
         </CardContent>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthProvider } from '../contexts/AuthContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
+import { LanguageProvider } from '../contexts/LanguageContext';
 import LoginPage from '../components/LoginPage';
 import Layout from '../components/Layout';
 import Dashboard from '../components/Dashboard';
@@ -34,11 +35,13 @@ const AppContent = () => {
 
 const Index = () => {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 };
 

@@ -1,17 +1,20 @@
-
 import React, { useState } from 'react';
 import { useProducts, Product } from '../hooks/useProducts';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Search, Plus, Edit2, Trash2 } from 'lucide-react';
 import ProductForm from './ProductForm';
 import { useToast } from '@/hooks/use-toast';
 
 const ProductList = () => {
   const { products, isLoading, deleteProduct } = useProducts();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
@@ -27,23 +30,32 @@ const ProductList = () => {
     return matchesSearch && matchesCategory;
   });
 
+  // Group products by category
+  const groupedProducts = filteredProducts.reduce((acc, product) => {
+    if (!acc[product.category]) {
+      acc[product.category] = [];
+    }
+    acc[product.category].push(product);
+    return acc;
+  }, {} as Record<string, Product[]>);
+
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setShowForm(true);
   };
 
   const handleDelete = async (productId: string, productName: string) => {
-    if (window.confirm(`Are you sure you want to delete "${productName}"?`)) {
+    if (window.confirm(`${t('products.deleteConfirm')} "${productName}"?`)) {
       try {
         await deleteProduct(productId);
         toast({
-          title: "Product Deleted",
-          description: `${productName} has been removed from inventory`
+          title: t('products.productDeleted'),
+          description: `${productName} ${t('products.productDeletedDesc')}`
         });
       } catch (error) {
         toast({
-          title: "Error",
-          description: "Failed to delete product",
+          title: t('products.error'),
+          description: t('products.failedToDelete'),
           variant: "destructive"
         });
       }
@@ -67,15 +79,16 @@ const ProductList = () => {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
-                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-              </CardContent>
-            </Card>
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+              <div className="space-y-3">
+                {[...Array(3)].map((_, j) => (
+                  <div key={j} className="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -86,9 +99,9 @@ const ProductList = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Products</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('products.title')}</h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Manage your commodity inventory
+            {t('products.subtitle')}
           </p>
         </div>
         <Button
@@ -96,7 +109,7 @@ const ProductList = () => {
           className="bg-blue-600 hover:bg-blue-700 text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Add Product
+          {t('products.addProduct')}
         </Button>
       </div>
 
@@ -105,7 +118,7 @@ const ProductList = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search products..."
+            placeholder={t('products.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -113,94 +126,113 @@ const ProductList = () => {
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Filter by category" />
+            <SelectValue placeholder={t('products.filterByCategory')} />
           </SelectTrigger>
           <SelectContent>
             {categories.map(category => (
               <SelectItem key={category} value={category}>
-                {category === 'all' ? 'All Categories' : category}
+                {category === 'all' ? t('products.allCategories') : t(`categories.${category}`) || category}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((product) => (
-          <Card key={product.id} className="hover:shadow-lg transition-shadow duration-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {product.name}
-                  </CardTitle>
-                  <CardDescription className="mt-1">
-                    {product.category}
-                  </CardDescription>
+      {/* Products List */}
+      <div className="space-y-2">
+        <Accordion type="multiple" className="w-full">
+          {Object.entries(groupedProducts).map(([category, categoryProducts], categoryIndex) => (
+            <AccordionItem key={category} value={`item-${categoryIndex}`} className="border rounded-lg">
+              <AccordionTrigger className="px-4 py-4 hover:no-underline">
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-semibold text-lg text-blue-900 dark:text-blue-100">
+                    {t(`categories.${category}`) || category}
+                  </span>
+                  <Badge variant="outline" className="text-sm mr-4">
+                    {categoryProducts.length} {categoryProducts.length === 1 ? t('products.product') : t('products.products')}
+                  </Badge>
                 </div>
-                <Badge variant={product.quantity < 50 ? "destructive" : "secondary"}>
-                  {product.quantity < 50 ? "Low Stock" : "In Stock"}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                {product.description}
-              </p>
-              
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    ${product.price}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Quantity: {product.quantity}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    Total Value
-                  </p>
-                  <p className="text-lg font-semibold text-green-600">
-                    ${(product.price * product.quantity).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(product)}
-                  className="flex-1"
-                >
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDelete(product.id, product.name)}
-                  className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </div>
-              
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
-                Last updated: {product.lastUpdated}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+              </AccordionTrigger>
+              <AccordionContent className="px-0 pb-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50 dark:bg-gray-800">
+                      <TableHead className="font-semibold">{t('products.name')}</TableHead>
+                      <TableHead className="font-semibold">{t('products.description')}</TableHead>
+                      <TableHead className="font-semibold text-right">{t('products.price')}</TableHead>
+                      <TableHead className="font-semibold text-right">{t('products.quantity')}</TableHead>
+                      <TableHead className="font-semibold text-right">{t('products.totalValue')}</TableHead>
+                      <TableHead className="font-semibold text-center">{t('products.status')}</TableHead>
+                      <TableHead className="font-semibold text-center">{t('products.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {categoryProducts.map((product) => (
+                      <TableRow key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                        <TableCell className="font-medium">
+                          <div>
+                            <p className="font-semibold text-gray-900 dark:text-white">{product.name}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {t('products.lastUpdated')}: {product.lastUpdated}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">
+                            {product.description}
+                          </p>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          ${product.price}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {product.quantity}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold text-green-600">
+                          ${(product.price * product.quantity).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant={product.quantity < 50 ? "destructive" : "secondary"}>
+                            {product.quantity < 50 ? t('products.lowStock') : t('products.inStock')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex gap-2 justify-center">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(product)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(product.id, product.name)}
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </div>
 
       {filteredProducts.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 dark:text-gray-400">
-            No products found matching your criteria.
+            {t('products.noProductsFound')}
+          </p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+            {t('products.noProductsDesc')}
           </p>
         </div>
       )}

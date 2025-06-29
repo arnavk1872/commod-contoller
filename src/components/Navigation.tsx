@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, Package } from 'lucide-react';
 
@@ -11,6 +11,7 @@ interface NavigationProps {
 
 const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <div className="mb-6">
@@ -22,7 +23,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
             className="flex items-center gap-2"
           >
             <LayoutDashboard className="h-4 w-4" />
-            Dashboard
+            {t('navigation.dashboard')}
           </Button>
         )}
         <Button
@@ -31,7 +32,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
           className="flex items-center gap-2"
         >
           <Package className="h-4 w-4" />
-          Products
+          {t('navigation.products')}
         </Button>
       </nav>
     </div>

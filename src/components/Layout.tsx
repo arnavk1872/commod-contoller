@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, Sun, Moon } from 'lucide-react';
+import { LogOut, Sun, Moon, Languages } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface LayoutProps {
@@ -14,14 +14,19 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
   const { toast } = useToast();
 
   const handleLogout = () => {
     logout();
     toast({
-      title: "Logged out",
-      description: "You have been successfully logged out"
+      title: t('auth.loggedOut'),
+      description: t('auth.loggedOutDesc')
     });
+  };
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'fr' : 'en');
   };
 
   return (
@@ -35,11 +40,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <div className="w-4 h-4 bg-white rounded-sm"></div>
               </div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                Commodities Management
+                {t('app.title')}
               </h1>
             </div>
             
             <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleLanguage}
+                className="text-gray-600 dark:text-gray-300"
+                title={`Switch to ${language === 'en' ? 'Français' : 'English'}`}
+              >
+                <Languages className="h-5 w-5" />
+              </Button>
+              
               <Button
                 variant="ghost"
                 size="icon"

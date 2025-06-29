@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useProducts } from '../hooks/useProducts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { TrendingUp, Package, AlertTriangle, DollarSign } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { products, isLoading } = useProducts();
 
   if (user?.role !== 'Manager') {
@@ -18,10 +19,10 @@ const Dashboard = () => {
             <div className="text-center">
               <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Access Restricted
+                {t('dashboard.accessRestricted')}
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Dashboard access is limited to Manager role only.
+                {t('dashboard.accessRestrictedDesc')}
               </p>
             </div>
           </CardContent>
@@ -54,28 +55,28 @@ const Dashboard = () => {
 
   const stats = [
     {
-      title: 'Total Products',
+      title: t('dashboard.totalProducts'),
       value: totalProducts.toString(),
       icon: Package,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100 dark:bg-blue-900/20'
     },
     {
-      title: 'Total Inventory Value',
+      title: t('dashboard.totalInventoryValue'),
       value: `$${totalValue.toLocaleString()}`,
       icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-100 dark:bg-green-900/20'
     },
     {
-      title: 'Low Stock Items',
+      title: t('dashboard.lowStockItems'),
       value: lowStockProducts.toString(),
       icon: AlertTriangle,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-100 dark:bg-yellow-900/20'
     },
     {
-      title: 'Average Price',
+      title: t('dashboard.averagePrice'),
       value: `$${avgPrice.toFixed(2)}`,
       icon: TrendingUp,
       color: 'text-purple-600',
@@ -87,10 +88,10 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Welcome back, {user?.name}!
+          {t('dashboard.welcome')}, {user?.name}!
         </h2>
         <p className="text-gray-600 dark:text-gray-400">
-          Here's an overview of your commodities inventory
+          {t('dashboard.overview')}
         </p>
       </div>
 
@@ -121,7 +122,7 @@ const Dashboard = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-            Recent Products
+            {t('dashboard.recentProducts')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -135,10 +136,10 @@ const Dashboard = () => {
                 <div className="flex items-center space-x-4">
                   <div className="text-right">
                     <p className="font-semibold text-gray-900 dark:text-white">${product.price}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Qty: {product.quantity}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('products.quantity')}: {product.quantity}</p>
                   </div>
                   <Badge variant={product.quantity < 50 ? "destructive" : "secondary"}>
-                    {product.quantity < 50 ? "Low Stock" : "In Stock"}
+                    {product.quantity < 50 ? t('products.lowStock') : t('products.inStock')}
                   </Badge>
                 </div>
               </div>
